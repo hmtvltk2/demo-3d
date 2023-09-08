@@ -202,7 +202,7 @@ onMounted(() => {
 
 
 
-    var currentFloors = ["0A", "0B", "0G", "01", "02", "03", "04", "05", "06",
+    let currentFloors = ["0A", "0B", "0G", "01", "02", "03", "04", "05", "06",
       "07", "08", "09"].reverse();
     currentFloors.unshift("all");
     select("#floorControl")
@@ -224,7 +224,7 @@ onMounted(() => {
         } else {
           map.setFilter('room-extrude1', ['==', 'Floor', value]);
         }
-        // select("#currentFloor").html("current floor: " + d);
+
 
         select("#floorControl")
           .selectAll("button").attr("class", "btn btn-default")

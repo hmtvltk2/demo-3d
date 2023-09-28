@@ -4,7 +4,7 @@ import { visualizer } from "rollup-plugin-visualizer";
 
 // https://vitejs.dev/config/
 export default defineConfig({
-  base: '/demo-3d',
+  base: '/demo-3d/',
 
   plugins: [vue(), visualizer({ open: true, })],
 })

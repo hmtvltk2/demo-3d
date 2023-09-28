@@ -1,7 +1,9 @@
 <script setup lang="ts">
 import { onMounted } from "vue";
 import { Map, Popup } from "maplibre-gl";
-import { select } from "d3";
+import congtrinh3d from './assets/congtrinh3d-may44.json'
+import indoor3D from './assets/indoor-3d-map.json'
+// import { select } from "d3";
 onMounted(() => {
   const map = new Map({
     container: 'map',
@@ -35,7 +37,7 @@ onMounted(() => {
       ],
       "glyphs": "https://demotiles.maplibre.org/font/{fontstack}/{range}.pbf",
     },
-    center: [-83.725, 42.28],
+    center: [106.692544335513603, 10.770398465053876],
     zoom: 15,
     pitch: 40,
     bearing: 20,
@@ -47,7 +49,7 @@ onMounted(() => {
       // GeoJSON Data source used in vector tiles, documented at
       // https://gist.github.com/ryanbaumann/a7d970386ce59d11c16278b90dde094d
       'type': 'geojson',
-      'data': '/indoor-3d-map.geojson'
+      'data': indoor3D
     });
 
     map.addLayer({
@@ -202,35 +204,137 @@ onMounted(() => {
 
 
 
-    let currentFloors = ["0A", "0B", "0G", "01", "02", "03", "04", "05", "06",
-      "07", "08", "09"].reverse();
-    currentFloors.unshift("all");
-    select("#floorControl")
-      .selectAll("button")
-      .data(currentFloors)
-      .enter()
-      .append("button")
-      .attr("type", "button")
-      .attr("class", "btn btn-default")
-      .html(function (d) {
-        return d;
-      })
-      .on("click", function (d: PointerEvent) {
-        const target = d.target as HTMLElement;
-        const value = target.textContent ?? ''
+    // let currentFloors = ["0A", "0B", "0G", "01", "02", "03", "04", "05", "06",
+    //   "07", "08", "09"].reverse();
+    // currentFloors.unshift("all");
+    // select("#floorControl")
+    //   .selectAll("button")
+    //   .data(currentFloors)
+    //   .enter()
+    //   .append("button")
+    //   .attr("type", "button")
+    //   .attr("class", "btn btn-default")
+    //   .html(function (d) {
+    //     return d;
+    //   })
+    //   .on("click", function (d: PointerEvent) {
+    //     const target = d.target as HTMLElement;
+    //     const value = target.textContent ?? ''
 
-        if (value == "all") {
-          map.setFilter('room-extrude1', ['!=', 'Floor', value]);
-        } else {
-          map.setFilter('room-extrude1', ['==', 'Floor', value]);
-        }
+    //     if (value == "all") {
+    //       map.setFilter('room-extrude1', ['!=', 'Floor', value]);
+    //     } else {
+    //       map.setFilter('room-extrude1', ['==', 'Floor', value]);
+    //     }
 
 
-        select("#floorControl")
-          .selectAll("button").attr("class", "btn btn-default")
-        target.classList.add("active")
-      });
-    document.querySelector('#floorControl button')?.classList.add('active')
+    //     select("#floorControl")
+    //       .selectAll("button").attr("class", "btn btn-default")
+    //     target.classList.add("active")
+    //   });
+    // document.querySelector('#floorControl button')?.classList.add('active')
+
+    // Du lieu anh DUC
+    map.addSource('congtrinh3d', {
+      type: 'geojson',
+      data: congtrinh3d
+    });
+
+    map.addLayer({
+      'id': 'id-congtrinh3d',
+      'type': 'fill-extrusion',
+      'source': 'congtrinh3d',
+      'paint': {
+        // See the MapLibre Style Specification for details on data expressions.
+        // https://maplibre.org/maplibre-style-spec/expressions/
+
+        // Get the fill-extrusion-color from the source 'color' property.
+        'fill-extrusion-color': {
+          'property': 'stt',
+          'type': 'categorical',
+          "default": "#cfcfda",
+          "stops": [
+            [1, "#afafbe"],
+            [2, "#eeeeee"], // circulation
+            [3, "#cfcfda"],
+            [4, "#d62728"], // restroom
+
+            [5, "#fc8d62"], //lab
+            // [6, "#fc8d62"],
+
+            [6, "#B04E69"], // hospital
+            // ["835", "#B04E69"],
+            // ["810", "#B04E69"],
+            // ["855", "#B04E69"],
+            // ["830", "#B04E69"],
+            // ["820", "#B04E69"],
+
+            [7, "#80b192"],  // residential
+            // ["920", "#80b192"],
+            // ["950", "#80b192"],
+
+            [8, "#8da0cb"],  // office 
+            // ["315", "#8da0cb"],
+
+            [9, "#7B6698"],  // conference
+            // ["610", "#7B6698"],
+
+            [10, "#2ca02c"],  // food, shop, recreation
+            [13, "#2ca02c"],
+            // ["650", "#2ca02c"],
+            // ["655", "#2ca02c"],
+            // ["660", "#2ca02c"],
+            // ["665", "#2ca02c"],
+            // ["670", "#2ca02c"],
+            // ["675", "#2ca02c"],
+            // ["720", "#2ca02c"],
+            // ["725", "#2ca02c"],
+
+            [11, "#e6b74c"],  // classroom
+            // ["115", "#e6b74c"],
+            // ["210", "#e6b74c"],  // class lab
+            // ["215", "#e6b74c"],
+
+            [12, "#4EB091"],  // study room
+            // ["420", "#4EB091"],
+            // ["430", "#4EB091"],
+
+          ]
+        },
+
+        // Get fill-extrusion-height from the source 'height' property.
+        'fill-extrusion-height': ['get', 'chieucao'],
+
+        // Get fill-extrusion-base from the source 'base_height' property.
+        'fill-extrusion-base': ['get', 'chieucaode'],
+
+        // Make extrusions slightly opaque for see through indoor walls.
+        'fill-extrusion-opacity': 1
+      }
+    });
+    map.on('mouseenter', 'id-congtrinh3d', () => {
+      map.getCanvas().style.cursor = 'pointer';
+    });
+
+    // Change it back to a pointer when it leaves.
+    map.on('mouseleave', 'id-congtrinh3d', () => {
+      map.getCanvas().style.cursor = '';
+    });
+    map.on('click', 'id-congtrinh3d', (e) => {
+      if (!e.features || e.features.length == 0) return;
+      let content = '';
+      const properties = e.features[0].properties;
+      for (const key in properties) {
+        content += `<p>${key}: ${properties[key]}</p>`
+      }
+
+      // content += `<a href="/detail?id=${properties.congtrinh_id}">Xem chi tiết</a>`
+
+      new Popup()
+        .setLngLat(e.lngLat)
+        .setHTML(content)
+        .addTo(map);
+    });
   });
 })
 </script>

@@ -9,6 +9,7 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@mapbox-controls/styles": "^1.0.1",
     "d3": "7.4.0",
     "maplibre-gl": "^3.3.1",
     "vue": "^3.3.4"

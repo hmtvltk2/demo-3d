@@ -1,9 +1,17 @@
 <script setup lang="ts">
 import { onMounted } from "vue";
 import { Map, Popup } from "maplibre-gl";
-import congtrinh3d from './assets/congtrinh3d-may44.json'
+// import StylesControl from '@mapbox-controls/styles';
+// import '@mapbox-controls/styles/src/index.css';
+// import congtrinh3d from './assets/congtrinh3d-may44.json'
 import indoor3D from './assets/indoor-3d-map.json'
+import hoasenKhachsan3d from './assets/hoasen_khachsan.json'
+
+
 // import { select } from "d3";
+
+
+
 onMounted(() => {
   const map = new Map({
     container: 'map',
@@ -43,6 +51,19 @@ onMounted(() => {
     bearing: 20,
     antialias: true
   });
+
+  // map.addControl(new StylesControl({
+  //   styles: [{
+  //     label: 'Streets',
+  //     styleName: 'Mapbox Streets',
+  //     styleUrl: 'mapbox://styles/mapbox/streets-v12',
+  //   }, {
+  //     label: 'Satellite',
+  //     styleName: 'Mapbox Satellite Streets',
+  //     styleUrl: 'mapbox://sprites/mapbox/satellite-streets-v12',
+  //   }],
+  //   compact: true
+  // }), 'top-left');
 
   map.on('load', () => {
     map.addSource('floorplan', {
@@ -235,9 +256,30 @@ onMounted(() => {
     // document.querySelector('#floorControl button')?.classList.add('active')
 
     // Du lieu anh DUC
+    const patternImage = new Image();
+    patternImage.src = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgAHngARngAAAABJRU5ErkJggg==';
+    map.addImage('brick_pattern', patternImage);
+
+    const getColor = (chucnangId: number) => {
+      if (chucnangId == 1) return "#eeeeee"
+      if (chucnangId == 2) return "#d62728"
+      if (chucnangId == 3) return "#fc8d62"
+      if (chucnangId == 4) return "#B04E69"
+      if (chucnangId == 5) return "#80b192"
+      if (chucnangId == 6) return "#8da0cb"
+      if (chucnangId == 7) return "#2ca02c"
+      return "#cfcfda"
+    }
+    const features = hoasenKhachsan3d.features.map(feature => {
+      const { properties } = feature
+      // @ts-ignore
+      properties.color = getColor(properties.chucnang_id)
+      return { ...feature, properties }
+    })
+    const newHoasenKhachsan3d = { ...hoasenKhachsan3d, features }
     map.addSource('congtrinh3d', {
       type: 'geojson',
-      data: congtrinh3d
+      data: newHoasenKhachsan3d
     });
 
     map.addLayer({
@@ -249,67 +291,17 @@ onMounted(() => {
         // https://maplibre.org/maplibre-style-spec/expressions/
 
         // Get the fill-extrusion-color from the source 'color' property.
-        'fill-extrusion-color': {
-          'property': 'stt',
-          'type': 'categorical',
-          "default": "#cfcfda",
-          "stops": [
-            [1, "#afafbe"],
-            [2, "#eeeeee"], // circulation
-            [3, "#cfcfda"],
-            [4, "#d62728"], // restroom
-
-            [5, "#fc8d62"], //lab
-            // [6, "#fc8d62"],
-
-            [6, "#B04E69"], // hospital
-            // ["835", "#B04E69"],
-            // ["810", "#B04E69"],
-            // ["855", "#B04E69"],
-            // ["830", "#B04E69"],
-            // ["820", "#B04E69"],
-
-            [7, "#80b192"],  // residential
-            // ["920", "#80b192"],
-            // ["950", "#80b192"],
-
-            [8, "#8da0cb"],  // office 
-            // ["315", "#8da0cb"],
-
-            [9, "#7B6698"],  // conference
-            // ["610", "#7B6698"],
-
-            [10, "#2ca02c"],  // food, shop, recreation
-            [13, "#2ca02c"],
-            // ["650", "#2ca02c"],
-            // ["655", "#2ca02c"],
-            // ["660", "#2ca02c"],
-            // ["665", "#2ca02c"],
-            // ["670", "#2ca02c"],
-            // ["675", "#2ca02c"],
-            // ["720", "#2ca02c"],
-            // ["725", "#2ca02c"],
-
-            [11, "#e6b74c"],  // classroom
-            // ["115", "#e6b74c"],
-            // ["210", "#e6b74c"],  // class lab
-            // ["215", "#e6b74c"],
-
-            [12, "#4EB091"],  // study room
-            // ["420", "#4EB091"],
-            // ["430", "#4EB091"],
-
-          ]
-        },
+        'fill-extrusion-color': ["get", "color"],
 
         // Get fill-extrusion-height from the source 'height' property.
-        'fill-extrusion-height': ['get', 'chieucao'],
+        'fill-extrusion-height': ['get', 'height'],
 
         // Get fill-extrusion-base from the source 'base_height' property.
-        'fill-extrusion-base': ['get', 'chieucaode'],
+        'fill-extrusion-base': ['get', 'base_heigh'],
 
         // Make extrusions slightly opaque for see through indoor walls.
-        'fill-extrusion-opacity': 1
+        'fill-extrusion-opacity': 1,
+        "fill-extrusion-pattern": "brick_pattern"
       }
     });
     map.on('mouseenter', 'id-congtrinh3d', () => {
@@ -324,13 +316,20 @@ onMounted(() => {
       if (!e.features || e.features.length == 0) return;
       let content = '';
       const properties = e.features[0].properties;
+      delete properties.height
+      delete properties.base_heigh
+      delete properties.Shape_Leng
+      delete properties.Shape_Area
+      delete properties.color
+      delete properties.chucnang_id
+      content += `<p class="badge">${properties.Chucnangta}<p>`
       for (const key in properties) {
-        content += `<p>${key}: ${properties[key]}</p>`
+        content += `<p><b>${key}</b>: ${properties[key]}</p>`
       }
 
       // content += `<a href="/detail?id=${properties.congtrinh_id}">Xem chi tiết</a>`
 
-      new Popup()
+      new Popup({ maxWidth: '800px' })
         .setLngLat(e.lngLat)
         .setHTML(content)
         .addTo(map);
@@ -353,7 +352,10 @@ onMounted(() => {
   flex-direction: column;
 }
 
-
+:global(.maplibregl-popup-content p) {
+  margin-top: 0.2rem !important;
+  margin-bottom: 0 !important;
+}
 
 :global(.active) {
   background-color: rgb(34, 87, 185);

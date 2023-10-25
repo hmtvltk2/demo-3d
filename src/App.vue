@@ -5,12 +5,8 @@ import { Map, Popup } from "maplibre-gl";
 // import '@mapbox-controls/styles/src/index.css';
 // import congtrinh3d from './assets/congtrinh3d-may44.json'
 import indoor3D from './assets/indoor-3d-map.json'
-import hoasenKhachsan3d from './assets/hoasen_khachsan.json'
-
-
+import hoasenKhachsan3d from './assets/Floor45.json'
 // import { select } from "d3";
-
-
 
 onMounted(() => {
   const map = new Map({
@@ -23,7 +19,7 @@ onMounted(() => {
       'sources': {
         'raster-tiles': {
           'type': 'raster',
-          'tiles': ['https://tile.openstreetmap.org/{z}/{x}/{y}.png'],
+          'tiles': ['https://thuduc-maps.hcmgis.vn/thuducserver/gwc/service/wmts?layer=thuduc:thuduc_maps&style=&tilematrixset=EPSG:900913&Service=WMTS&Request=GetTile&Version=1.0.0&Format=image/png&TileMatrix=EPSG:900913:{z}&TileCol={x}&TileRow={y}'],
           'tileSize': 256,
           'minzoom': 0,
           'maxzoom': 19
@@ -51,6 +47,7 @@ onMounted(() => {
     bearing: 20,
     antialias: true
   });
+
 
   // map.addControl(new StylesControl({
   //   styles: [{
@@ -256,24 +253,28 @@ onMounted(() => {
     // document.querySelector('#floorControl button')?.classList.add('active')
 
     // Du lieu anh DUC
-    const patternImage = new Image();
-    patternImage.src = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgAHngARngAAAABJRU5ErkJggg==';
-    map.addImage('brick_pattern', patternImage);
+    // const patternImage = new Image();
+    // patternImage.src = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgAHngARngAAAABJRU5ErkJggg==';
+    // map.addImage('brick_pattern', patternImage);
 
     const getColor = (chucnangId: number) => {
-      if (chucnangId == 1) return "#eeeeee"
-      if (chucnangId == 2) return "#d62728"
-      if (chucnangId == 3) return "#fc8d62"
-      if (chucnangId == 4) return "#B04E69"
-      if (chucnangId == 5) return "#80b192"
-      if (chucnangId == 6) return "#8da0cb"
-      if (chucnangId == 7) return "#2ca02c"
+      if (chucnangId == null) return "#cfcfda"
+      if (chucnangId % 10 == 1) return "#03A9F4"
+      if (chucnangId % 10 == 2) return "#d62728"
+      if (chucnangId % 10 == 3) return "#fc8d62"
+      if (chucnangId % 10 == 4) return "#B04E69"
+      if (chucnangId % 10 == 5) return "#80b192"
+      if (chucnangId % 10 == 6) return "#8da0cb"
+      if (chucnangId % 10 == 7) return "#2ca02c"
+      if (chucnangId % 10 == 8) return "#3F51B5"
+      if (chucnangId % 10 == 9) return "#9C27B0"
+      if (chucnangId % 10 == 0) return "#009688"
       return "#cfcfda"
     }
     const features = hoasenKhachsan3d.features.map(feature => {
       const { properties } = feature
       // @ts-ignore
-      properties.color = getColor(properties.chucnang_id)
+      properties.color = getColor(properties.Chucnangid)
       return { ...feature, properties }
     })
     const newHoasenKhachsan3d = { ...hoasenKhachsan3d, features }
@@ -301,7 +302,6 @@ onMounted(() => {
 
         // Make extrusions slightly opaque for see through indoor walls.
         'fill-extrusion-opacity': 1,
-        "fill-extrusion-pattern": "brick_pattern"
       }
     });
     map.on('mouseenter', 'id-congtrinh3d', () => {
@@ -316,15 +316,37 @@ onMounted(() => {
       if (!e.features || e.features.length == 0) return;
       let content = '';
       const properties = e.features[0].properties;
-      delete properties.height
-      delete properties.base_heigh
-      delete properties.Shape_Leng
-      delete properties.Shape_Area
-      delete properties.color
-      delete properties.chucnang_id
-      content += `<p class="badge">${properties.Chucnangta}<p>`
-      for (const key in properties) {
-        content += `<p><b>${key}</b>: ${properties[key]}</p>`
+      const titles = {
+        ID: 'Mã ID',
+        Mahs: 'Mã hồ sơ',
+        GPXD: 'Giấy phép xây dựng',
+        Soto: 'Số tờ',
+        Sothua: 'Số thửa',
+        Sonha: 'Số nhà',
+        Tenduong: 'Tên đường',
+        Phuongxa: 'Phường xã',
+        Quanhuyen: 'Quận huyện',
+        Tenduan: 'Tên dự án',
+        Loaicongt: 'Loại công trình',
+        ChieucaoCT: 'Chiều cao công trình',
+        Chudautu: 'Chủ đầu tư',
+        Dtdatxd: 'Diện tích đất xây dựng',
+        Dtdatcayxa: 'Diện tích đất cây xanh',
+        DtsanxdCT: 'Diện tích sàn xây dựng công trình',
+        LoaiDuLieu: 'Loại dữ liệu',
+        LoaiTaiLie: 'Loại tài liệu',
+        SapXep: 'Sắp xếp',
+        Tongsotang: 'Tổng số tầng',
+        Tentang: 'Tên từng tầng',
+        Chucnangta: 'Chức năng của tầng',
+        Dtsanxdtan: 'Diện tích sàn xây dựng từng tầng',
+        Chieucaota: 'Chiều cao từng tầng',
+
+      }
+
+      content += `<p class="badge">${properties.Chucnangta ?? 'Chưa có dữ liệu chức năng tầng'}<p>`
+      for (const [key, title] of Object.entries(titles)) {
+        content += `<p><b>${title}</b>: ${properties[key]}</p>`
       }
 
       // content += `<a href="/detail?id=${properties.congtrinh_id}">Xem chi tiết</a>`
@@ -343,7 +365,7 @@ onMounted(() => {
   <div id="floorControl" class="btn-group-vertical btn-group-xs" role="group"></div>
 </template>
 
-<style scoped>
+<style scoped lang="scss">
 #floorControl {
   position: absolute;
   top: 30%;
@@ -353,9 +375,15 @@ onMounted(() => {
 }
 
 :global(.maplibregl-popup-content p) {
-  margin-top: 0.2rem !important;
+  margin-top: 0.1rem !important;
   margin-bottom: 0 !important;
 }
+
+:global(.maplibregl-popup-content) {
+  max-height: 400px;
+  overflow-y: auto;
+}
+
 
 :global(.active) {
   background-color: rgb(34, 87, 185);

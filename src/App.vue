@@ -1,12 +1,15 @@
 <script setup lang="ts">
 import { onMounted } from "vue";
-import { Map, Popup } from "maplibre-gl";
+import { Map, MapGeoJSONFeature, MapMouseEvent, NavigationControl } from "maplibre-gl";
+import BasemapsControl from 'maplibre-gl-basemaps';
+import 'maplibre-gl-basemaps/lib/basemaps.css';
 // import StylesControl from '@mapbox-controls/styles';
 // import '@mapbox-controls/styles/src/index.css';
 // import congtrinh3d from './assets/congtrinh3d-may44.json'
-import indoor3D from './assets/indoor-3d-map.json'
 import hoasenKhachsan3d from './assets/Floor45.json'
+import { usePopup } from './composables/usePopup'
 // import { select } from "d3";
+
 
 onMounted(() => {
   const map = new Map({
@@ -17,208 +20,53 @@ onMounted(() => {
       'center': [0, 0],
       'zoom': 0,
       'sources': {
-        'raster-tiles': {
-          'type': 'raster',
-          'tiles': ['https://thuduc-maps.hcmgis.vn/thuducserver/gwc/service/wmts?layer=thuduc:thuduc_maps&style=&tilematrixset=EPSG:900913&Service=WMTS&Request=GetTile&Version=1.0.0&Format=image/png&TileMatrix=EPSG:900913:{z}&TileCol={x}&TileRow={y}'],
-          'tileSize': 256,
-          'minzoom': 0,
-          'maxzoom': 19
-        }
+        // 'raster-tiles': {
+        //   'type': 'raster',
+        //   'tiles': ['https://thuduc-maps.hcmgis.vn/thuducserver/gwc/service/wmts?layer=thuduc:thuduc_maps&style=&tilematrixset=EPSG:900913&Service=WMTS&Request=GetTile&Version=1.0.0&Format=image/png&TileMatrix=EPSG:900913:{z}&TileCol={x}&TileRow={y}'],
+        //   'tileSize': 256,
+        // }
       },
       'layers': [
-        {
-          'id': 'background',
-          'type': 'background',
-          'paint': {
-            'background-color': '#e0dfdf'
-          }
-        },
-        {
-          'id': 'simple-tiles',
-          'type': 'raster',
-          'source': 'raster-tiles'
-        }
+        // {
+        //   'id': 'background',
+        //   'type': 'background',
+        //   'paint': {
+        //     'background-color': '#e0dfdf'
+        //   }
+        // },
+        // {
+        //   'id': 'simple-tiles',
+        //   'type': 'raster',
+        //   'source': 'raster-tiles'
+        // }
       ],
       "glyphs": "https://demotiles.maplibre.org/font/{fontstack}/{range}.pbf",
     },
     center: [106.692544335513603, 10.770398465053876],
     zoom: 15,
+    minZoom: 8,
     pitch: 40,
     bearing: 20,
     antialias: true
   });
 
+  map.addControl(new NavigationControl(), 'bottom-right');
+  map.addControl(new BasemapsControl({
+    initialBasemap: 'hcmgis',
+    basemaps: [
+      {
+        id: 'hcmgis',
+        tiles: ['https://thuduc-maps.hcmgis.vn/thuducserver/gwc/service/wmts?layer=thuduc:thuduc_maps&style=&tilematrixset=EPSG:900913&Service=WMTS&Request=GetTile&Version=1.0.0&Format=image/png&TileMatrix=EPSG:900913:{z}&TileCol={x}&TileRow={y}'],
+        sourceExtraParams: { attribution: '<a href="https://hcmgis.vn/">&copy; HCMGIS</a>' }
+      },
 
-  // map.addControl(new StylesControl({
-  //   styles: [{
-  //     label: 'Streets',
-  //     styleName: 'Mapbox Streets',
-  //     styleUrl: 'mapbox://styles/mapbox/streets-v12',
-  //   }, {
-  //     label: 'Satellite',
-  //     styleName: 'Mapbox Satellite Streets',
-  //     styleUrl: 'mapbox://sprites/mapbox/satellite-streets-v12',
-  //   }],
-  //   compact: true
-  // }), 'top-left');
+    ]
+  }), 'bottom-left');
+
+  const { registerPopup } = usePopup(map)
 
   map.on('load', () => {
-    map.addSource('floorplan', {
-      // GeoJSON Data source used in vector tiles, documented at
-      // https://gist.github.com/ryanbaumann/a7d970386ce59d11c16278b90dde094d
-      'type': 'geojson',
-      'data': indoor3D
-    });
 
-    map.addLayer({
-      'id': 'room-extrusion',
-      'type': 'fill-extrusion',
-      'source': 'floorplan',
-      'paint': {
-        // See the MapLibre Style Specification for details on data expressions.
-        // https://maplibre.org/maplibre-style-spec/expressions/
-
-        // Get the fill-extrusion-color from the source 'color' property.
-        'fill-extrusion-color': ['get', 'color'],
-
-        // Get fill-extrusion-height from the source 'height' property.
-        'fill-extrusion-height': ['get', 'height'],
-
-        // Get fill-extrusion-base from the source 'base_height' property.
-        'fill-extrusion-base': ['get', 'base_height'],
-
-        // Make extrusions slightly opaque for see through indoor walls.
-        'fill-extrusion-opacity': 1
-      }
-    });
-
-    map.addLayer({
-      "id": "text-labels",
-      "type": "symbol",
-      "source": "floorplan",
-
-      "layout": {
-        "text-field": ['get', 'name'], // Use your attribute with text data here
-        "text-size": 14,
-      },
-      "paint": {
-        "text-color": "black",
-      }
-    })
-    map.on('click', 'room-extrusion', (e) => {
-      if (!e.features || e.features.length == 0) return;
-
-      new Popup()
-        .setLngLat(e.lngLat)
-        .setHTML(`<p>${JSON.stringify(e.features[0].properties, null, 2)}</p>`)
-        .addTo(map);
-    });
-
-    map.on('mouseenter', 'room-extrusion', () => {
-      map.getCanvas().style.cursor = 'pointer';
-    });
-
-    // Change it back to a pointer when it leaves.
-    map.on('mouseleave', 'room-extrusion', () => {
-      map.getCanvas().style.cursor = '';
-    });
-
-    map.addSource('room-data-source', {
-      type: 'vector',
-      url: '/sample.json'
-    });
-
-    map.addLayer({
-      'id': 'room-extrude1',
-      'type': 'fill-extrusion',
-      'source': 'room-data-source',
-      "source-layer": "room_cleaned-b0ndmw",
-      'paint': {
-        'fill-extrusion-color': {
-          'property': 'RMTYP',
-          'type': 'categorical',
-          "default": "#cfcfda",
-          "stops": [
-            ["010", "#afafbe"],
-            ["020", "#eeeeee"], // circulation
-            ["030", "#cfcfda"],
-            ["040", "#d62728"], // restroom
-
-            ["250", "#fc8d62"], //lab
-            ["255", "#fc8d62"],
-
-            ["850", "#B04E69"], // hospital
-            ["835", "#B04E69"],
-            ["810", "#B04E69"],
-            ["855", "#B04E69"],
-            ["830", "#B04E69"],
-            ["820", "#B04E69"],
-
-            ["910", "#80b192"],  // residential
-            ["920", "#80b192"],
-            ["950", "#80b192"],
-
-            ["310", "#8da0cb"],  // office 
-            ["315", "#8da0cb"],
-
-            ["350", "#7B6698"],  // conference
-            ["610", "#7B6698"],
-
-            ["630", "#2ca02c"],  // food, shop, recreation
-            ["635", "#2ca02c"],
-            ["650", "#2ca02c"],
-            ["655", "#2ca02c"],
-            ["660", "#2ca02c"],
-            ["665", "#2ca02c"],
-            ["670", "#2ca02c"],
-            ["675", "#2ca02c"],
-            ["720", "#2ca02c"],
-            ["725", "#2ca02c"],
-
-            ["110", "#e6b74c"],  // classroom
-            ["115", "#e6b74c"],
-            ["210", "#e6b74c"],  // class lab
-            ["215", "#e6b74c"],
-
-            ["410", "#4EB091"],  // study room
-            ["420", "#4EB091"],
-            ["430", "#4EB091"],
-
-          ]
-        },
-        'fill-extrusion-height': {
-          'property': 'ceiling_height',
-          'type': 'identity'
-        },
-        'fill-extrusion-base': {
-          'property': 'floor_height',
-          'type': 'identity'
-        },
-        // 'fill-extrusion-opacity': 1,
-      }
-    });
-
-    map.on('mouseenter', 'room-extrude1', () => {
-      map.getCanvas().style.cursor = 'pointer';
-    });
-
-    // Change it back to a pointer when it leaves.
-    map.on('mouseleave', 'room-extrude1', () => {
-      map.getCanvas().style.cursor = '';
-    });
-    map.on('click', 'room-extrude1', (e) => {
-      if (!e.features || e.features.length == 0) return;
-      let content = '';
-      const properties = e.features[0].properties;
-      for (const key in properties) {
-        content += `<p>${key}: ${properties[key]}</p>`
-      }
-
-      new Popup()
-        .setLngLat(e.lngLat)
-        .setHTML(content)
-        .addTo(map);
-    });
 
 
 
@@ -252,10 +100,7 @@ onMounted(() => {
     //   });
     // document.querySelector('#floorControl button')?.classList.add('active')
 
-    // Du lieu anh DUC
-    // const patternImage = new Image();
-    // patternImage.src = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgAHngARngAAAABJRU5ErkJggg==';
-    // map.addImage('brick_pattern', patternImage);
+
 
     const getColor = (chucnangId: number) => {
       if (chucnangId == null) return "#cfcfda"
@@ -288,31 +133,16 @@ onMounted(() => {
       'type': 'fill-extrusion',
       'source': 'congtrinh3d',
       'paint': {
-        // See the MapLibre Style Specification for details on data expressions.
-        // https://maplibre.org/maplibre-style-spec/expressions/
-
-        // Get the fill-extrusion-color from the source 'color' property.
         'fill-extrusion-color': ["get", "color"],
-
-        // Get fill-extrusion-height from the source 'height' property.
         'fill-extrusion-height': ['get', 'height'],
-
-        // Get fill-extrusion-base from the source 'base_height' property.
         'fill-extrusion-base': ['get', 'base_heigh'],
-
-        // Make extrusions slightly opaque for see through indoor walls.
         'fill-extrusion-opacity': 1,
       }
     });
-    map.on('mouseenter', 'id-congtrinh3d', () => {
-      map.getCanvas().style.cursor = 'pointer';
-    });
 
-    // Change it back to a pointer when it leaves.
-    map.on('mouseleave', 'id-congtrinh3d', () => {
-      map.getCanvas().style.cursor = '';
-    });
-    map.on('click', 'id-congtrinh3d', (e) => {
+    const getCongtrinhPopupContent = (e: MapMouseEvent & {
+      features?: MapGeoJSONFeature[] | undefined;
+    } & Object) => {
       if (!e.features || e.features.length == 0) return;
       let content = '';
       const properties = e.features[0].properties;
@@ -349,13 +179,11 @@ onMounted(() => {
         content += `<p><b>${title}</b>: ${properties[key]}</p>`
       }
 
-      // content += `<a href="/detail?id=${properties.congtrinh_id}">Xem chi tiết</a>`
+      return content;
+    }
 
-      new Popup({ maxWidth: '800px' })
-        .setLngLat(e.lngLat)
-        .setHTML(content)
-        .addTo(map);
-    });
+    registerPopup('id-congtrinh3d', getCongtrinhPopupContent)
+
   });
 })
 </script>

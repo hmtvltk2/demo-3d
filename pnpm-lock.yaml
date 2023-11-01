@@ -14,6 +14,9 @@ dependencies:
   maplibre-gl:
     specifier: ^3.3.1
     version: 3.3.1
+  maplibre-gl-basemaps:
+    specifier: ^0.1.2
+    version: 0.1.2(maplibre-gl@3.3.1)
   vue:
     specifier: ^3.3.4
     version: 3.3.4
@@ -1314,6 +1317,14 @@ packages:
       supercluster: 8.0.1
       tinyqueue: 2.0.3
       vt-pbf: 3.1.3
+    dev: false
+
+  /maplibre-gl-basemaps@0.1.2(maplibre-gl@3.3.1):
+    resolution: {integrity: sha512-aY3ubRCER3+JQY3qx1fr2rOfwlW3OAD3EwgjZXMVdYhm0yS0RbRb2n9Fc2RSvPWL2CrLWQhmbw+E4mzRG8sFWQ==}
+    peerDependencies:
+      maplibre-gl: '>=1'
+    dependencies:
+      maplibre-gl: 3.3.1
     dev: false
 
   /maplibre-gl@3.3.1:

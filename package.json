@@ -12,6 +12,7 @@
     "@mapbox-controls/styles": "^1.0.1",
     "d3": "7.4.0",
     "maplibre-gl": "^3.3.1",
+    "maplibre-gl-basemaps": "^0.1.2",
     "vue": "^3.3.4"
   },
   "devDependencies": {

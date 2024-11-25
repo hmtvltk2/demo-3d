@@ -8,8 +8,9 @@ import 'maplibre-gl-basemaps/lib/basemaps.css';
 // import congtrinh3d from './assets/congtrinh3d-may44.json'
 import hoasenKhachsan3d from './assets/Floor45.json'
 import { usePopup } from './composables/usePopup'
+import { useLogin } from "./composables/useLogin";
 // import { select } from "d3";
-
+const { login } = useLogin()
 
 onMounted(() => {
   const map = new Map({
@@ -191,6 +192,9 @@ onMounted(() => {
 <template>
   <div id="map"></div>
   <div id="floorControl" class="btn-group-vertical btn-group-xs" role="group"></div>
+  <div id="login">
+    <button type="button" class="btn btn-primary" @click="login">Login SSO</button>
+  </div>
 </template>
 
 <style scoped lang="scss">

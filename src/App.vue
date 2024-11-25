@@ -206,6 +206,14 @@ onMounted(() => {
   flex-direction: column;
 }
 
+#login {
+  position: absolute;
+  top: 10px;
+  right: 0px;
+  display: flex;
+  flex-direction: column;
+}
+
 :global(.maplibregl-popup-content p) {
   margin-top: 0.1rem !important;
   margin-bottom: 0 !important;

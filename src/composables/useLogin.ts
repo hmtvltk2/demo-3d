@@ -3,9 +3,10 @@ import { onMounted } from 'vue';
 
 export function useLogin() {
     const settings = {
-        authority: 'https://sso.hcmgis.vn',
+        authority: 'https://sso.hcmgis.vn/oauth2/token',
         client_id: 'K1FTx1PfZTJPCzpl8tf4DEtYAe4a',
         redirect_uri: 'https://demo-3dcity.hcmgis.vn/callback',
+
         response_type: 'code',
         scope: 'openid profile email',
     };
